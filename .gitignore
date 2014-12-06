@@ -1,3 +1,4 @@
 .gitignore
 .npmignore
 .idea
+node_modules

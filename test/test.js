@@ -1,0 +1,272 @@
+/**
+ * Created by Simon on 5/12/2014.
+ */
+
+var testdb = require('./testdb');
+var should = require('should');
+var populate = require('../index.js');
+var _ = require('underscore');
+
+describe('when populating a single doc and single field', function(){
+    var db;
+    var finalCars;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.findOne({ model: 'Focus' }, function(err, cars){
+                populate(cars, 'maker.owner', function(err, popCars){
+                    finalCars = popCars;
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should return a single doc', function(){
+        should.exist(finalCars);
+        Array.isArray(finalCars).should.eql(false);
+    });
+
+    it('should be the same doc', function(){
+        finalCars._doc.should.have.property('model');
+    });
+
+    it('should have the same initial data', function(){
+        finalCars._doc.model.should.eql('Focus');
+    });
+
+    it('should have populated the nested object', function(){
+        finalCars._doc.maker._doc.should.have.property('name');
+        finalCars._doc.maker._doc.name.should.eql('Ford');
+    });
+});
+
+describe('when populating a single doc with some array fields', function(){
+    var db;
+    var finalCars;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.findOne({ model: 'Focus' }, function(err, cars){
+                populate(cars, 'maker.employees drivers', function(err, popCars){
+                    finalCars = popCars;
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should return correct number of docs', function(){
+        should.exist(finalCars);
+    });
+
+    it('should be the right doc', function(){
+        finalCars._doc.should.have.property('model');
+        finalCars._doc.model.should.eql('Focus');
+    });
+
+    it('should have populated the first array', function(){
+        finalCars._doc.drivers.length.should.eql(2);
+        finalCars._doc.drivers[0]._doc.should.have.property('firstName');
+    });
+
+    it('should have populated the nested array', function(){
+        finalCars._doc.maker._doc.should.have.property('employees');
+        finalCars._doc.maker._doc.employees.length.should.eql(3);
+        finalCars._doc.maker._doc.employees[0]._doc.should.have.property('firstName');
+    });
+});
+
+describe('when populating multiple docs with a single field', function(){
+    var db;
+    var finalCars;
+    var falcon, focus;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.find(function(err, cars){
+                populate(cars, 'maker.owner', function(err, popCars){
+                    finalCars = popCars;
+                    finalCars.forEach(function(car){
+                        if (car._doc.model === 'Falcon'){
+                            falcon = car;
+                        }
+                        else {
+                            focus = car;
+                        }
+                    });
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should return the right number of docs', function(){
+        should.exist(finalCars);
+        Array.isArray(finalCars).should.eql(true);
+        finalCars.length.should.eql(2);
+    });
+
+    it('should be the same docs', function(){
+        falcon._doc.model.should.eql('Falcon');
+        focus._doc.model.should.eql('Focus');
+    });
+
+    it('should have populated the nested object', function(){
+        falcon._doc.maker.should.have.property('_doc');
+        focus._doc.maker.should.have.property('_doc');
+    });
+});
+
+describe('when populating single fields in nested arrays', function(){
+    var db;
+    var falcon;
+    var janet;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.findOne({ model: 'Falcon' }, function(err, cars){
+                populate(cars, 'drivers.friend', function(err, popCars){
+                    falcon = popCars;
+                    falcon._doc.drivers.forEach(function(driver){
+                        if (driver.firstName === 'Janet'){
+                            janet = driver;
+                        }
+                    });
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should have populated each array element', function(){
+        should.exist(janet);
+    });
+
+    it('should have populated object in array', function(){
+        janet._doc.friend.should.have.property('_doc');
+        janet._doc.friend._doc.firstName.should.eql('Greg');
+    });
+});
+
+describe.only('when populating multiple objects on the same doc', function(){
+    var maker;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.findOne(function(err, cars){
+                populate(cars, 'maker.ceo maker.owner', function(err, popCars){
+                    maker = popCars._doc.maker._doc;
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should populate ceo field', function(){
+        maker.ceo.should.have.property('_doc');
+    });
+
+    it('should populate owner field', function(){
+        maker.owner.should.have.property('_doc');
+    });
+});
+
+describe('when populating multiple docs and multiple fields with arrays', function(){
+    var db;
+    var finalCars;
+    var falcon;
+    var focus;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.find(function(err, cars){
+                populate(cars, 'maker.owner maker.employees drivers', function(err, popCars){
+                    finalCars = popCars;
+                    finalCars.forEach(function(car){
+                        if (car._doc.model === 'Falcon'){
+                            falcon = car;
+                        }
+                        else {
+                            focus = car;
+                        }
+                    });
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should have the right number of docs', function(){
+        should.exist(finalCars);
+        finalCars.length.should.eql(2);
+    });
+
+    it('should have populated single fields in both docs', function(){
+        falcon._doc.maker._doc.should.have.property('name');
+        focus._doc.maker._doc.should.have.property('name');
+    });
+
+    it('should have populated first array in both docs', function(){
+        falcon._doc.drivers[0]._doc.should.have.property('firstName');
+        focus._doc.drivers[0]._doc.should.have.property('firstName');
+    });
+
+    it('should have populated nested arrays in both docs', function(){
+        falcon._doc.maker._doc.employees[0]._doc.should.have.property('firstName');
+        focus._doc.maker._doc.employees[0]._doc.should.have.property('firstName');
+    });
+
+    it('should have populated nested single fields in both docs', function(){
+        falcon._doc.maker._doc.owner._doc.should.have.property('firstName');
+        focus._doc.maker._doc.owner._doc.should.have.property('firstName');
+    });
+});
+
+//describe('when passing dodgy data', function(){
+//    var db;
+//    var finalCars;
+//    before(function(done){
+//        testdb.init(function(initDb){
+//            db = initDb;
+//
+//            db.Car.find(function(err, cars){
+//                populate(cars, 'maker.owner maker.employees drivers maker.employees ', function(err, popCars){
+//                    finalCars = popCars;
+//                    done();
+//                });
+//            });
+//        });
+//    });
+//
+//
+//
+//
+//});
+//
+//describe('when populating with lean option', function(){
+//    var db;
+//    var finalCars;
+//    before(function(done){
+//        testdb.init(function(initDb){
+//            db = initDb;
+//
+//            db.Car.find(function(err, cars){
+//                populate(cars, 'maker.owner maker.employees drivers maker.employees ', function(err, popCars){
+//                    finalCars = popCars;
+//                    done();
+//                });
+//            });
+//        });
+//    });
+//
+//
+//
+//
+//});

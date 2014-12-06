@@ -1,0 +1,34 @@
+{
+  "name": "mongoose-populator",
+  "version": "0.0.1",
+  "description": "Allows full population of nested models in mongoose",
+  "main": "populator.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha -R spec test/test.js"
+  },
+  "keywords": [
+    "mongoose",
+    "populate",
+    "population",
+    "deep",
+    "nest",
+    "nested",
+    "sub",
+    "document",
+    "model",
+    "full"
+  ],
+  "author": "Simon Trewhella",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^0.9.0",
+    "underscore": "^1.7.0"
+  },
+  "devDependencies": {
+    "mongoose": "^3.8.20",
+    "should": "^4.3.0"
+  }
+}
