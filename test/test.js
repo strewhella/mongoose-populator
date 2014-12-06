@@ -5,7 +5,6 @@
 var testdb = require('./testdb');
 var should = require('should');
 var populate = require('../index.js');
-var _ = require('underscore');
 
 describe('when populating a single doc and single field', function(){
     var db;

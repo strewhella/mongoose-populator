@@ -4,7 +4,6 @@
 
 var mongoose = require('mongoose');
 var async = require('async');
-var _ = require('underscore');
 
 var initialized = false;
 

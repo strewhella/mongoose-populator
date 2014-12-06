@@ -1,8 +1,10 @@
 {
   "name": "mongoose-populator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Allows full population of nested models in mongoose",
-  "main": "populator.js",
+  "repository": "https://github.com/strewhella/mongoose-populator.git",
+  "bugs": "https://github.com/strewhella/mongoose-populator/issues",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },
@@ -24,8 +26,7 @@
   "author": "Simon Trewhella",
   "license": "MIT",
   "dependencies": {
-    "async": "^0.9.0",
-    "underscore": "^1.7.0"
+    "async": "^0.9.0"
   },
   "devDependencies": {
     "mongoose": "^3.8.20",
