@@ -15,13 +15,13 @@ The signature for this function: `populate(docs, paths, callback, [lean])`
 
 For example, populating some cars, as in the `test` folder:
 
-``
+```
 Car.findOne({ model: 'Focus' }, function(err, cars){
     populate(cars, 'maker.owner', function(err, populatedCars){
         // Use the result
     });
 });
-``
+```
 
 This will populate the `maker` field on each car, as well as the `owner` field on each `maker`
 
