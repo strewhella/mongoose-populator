@@ -153,7 +153,7 @@ describe('when populating single fields in nested arrays', function(){
     });
 });
 
-describe.only('when populating multiple objects on the same doc', function(){
+describe('when populating multiple objects on the same doc', function(){
     var maker;
     before(function(done){
         testdb.init(function(initDb){
@@ -229,44 +229,96 @@ describe('when populating multiple docs and multiple fields with arrays', functi
     });
 });
 
-//describe('when passing dodgy data', function(){
-//    var db;
-//    var finalCars;
-//    before(function(done){
-//        testdb.init(function(initDb){
-//            db = initDb;
-//
-//            db.Car.find(function(err, cars){
-//                populate(cars, 'maker.owner maker.employees drivers maker.employees ', function(err, popCars){
-//                    finalCars = popCars;
-//                    done();
-//                });
-//            });
-//        });
-//    });
-//
-//
-//
-//
-//});
-//
-//describe('when populating with lean option', function(){
-//    var db;
-//    var finalCars;
-//    before(function(done){
-//        testdb.init(function(initDb){
-//            db = initDb;
-//
-//            db.Car.find(function(err, cars){
-//                populate(cars, 'maker.owner maker.employees drivers maker.employees ', function(err, popCars){
-//                    finalCars = popCars;
-//                    done();
-//                });
-//            });
-//        });
-//    });
-//
-//
-//
-//
-//});
+describe('when passing dodgy data', function(){
+    var db;
+    var docs;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.find(function(err, validDocs){
+                docs = validDocs;
+                done();
+            });
+        });
+    });
+
+    it('should return error on null path', function(done){
+        populate(docs, null, function(err, result){
+            should.exist(err);
+            should.not.exist(result);
+            done();
+        });
+    });
+
+    it('should return error on null doc/s', function(done){
+        populate(null, 'something', function(err, result){
+            should.exist(err);
+            should.not.exist(result);
+            done();
+        });
+    });
+
+    it('should ignore extra whitespace', function(done){
+        populate(docs, '  maker.ceo        something     huh ', function(err, result){
+            should.exist(result);
+            result[0]._doc.maker.should.have.property('ceo');
+            done();
+        });
+    });
+
+    it('should ignore non-existent fields', function(done){
+        populate(docs, 'i.dont.exist neither.do.i me.too', function(err, result){
+            should.exist(result);
+            should.not.exist(err);
+            result.length.should.eql(docs.length);
+            done();
+        });
+    });
+});
+
+describe('when populating with lean option', function(){
+    var db;
+    var finalCars;
+    before(function(done){
+        testdb.init(function(initDb){
+            db = initDb;
+
+            db.Car.find(function(err, cars){
+                populate(cars, 'maker.owner maker.employees drivers maker.employees ', function(err, popCars){
+                    finalCars = popCars;
+                    done();
+                }, true);
+            });
+        });
+    });
+
+    it('should return the same number of docs', function(){
+        finalCars.length.should.eql(2);
+    });
+
+    it('should have leaned the first level of each object in array', function(){
+        finalCars.forEach(function(car){
+            car.should.not.have.property('_doc');
+            car.should.have.property('model');
+        });
+    });
+
+    it('should have leaned the second level of each object in array', function(){
+        finalCars.forEach(function(car){
+            car.maker.should.not.have.property('_doc');
+            car.maker.should.have.property('name');
+        });
+    });
+
+    it('should have leaned the third level of each object in array', function(){
+        finalCars.forEach(function(car){
+            car.maker.employees.forEach(function(employee){
+                employee.should.have.property('firstName');
+            });
+        });
+    });
+
+
+
+});
