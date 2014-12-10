@@ -242,10 +242,10 @@ describe('when passing dodgy data', function(){
         });
     });
 
-    it('should return error on null path', function(done){
+    it('should ignore null or empty path', function(done){
         populate(docs, null, function(err, result){
-            should.exist(err);
-            should.not.exist(result);
+            should.not.exist(err);
+            should.exist(result);
             done();
         });
     });

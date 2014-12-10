@@ -34,8 +34,8 @@ function buildTrails(paths){
 }
 
 function exec(docs, paths, done, lean){
-    if (!paths) return done('Empty path/s provided for population');
-    if (!docs) return done('No doc/s provided for population');
+    if (!paths) paths = '';
+    if (!docs) return done(new Error('No doc/s provided for population'));
 
     // Decompose the paths into a tree of calls
     // Can safely allow calls to non-existent fields since mongoose ignores them
