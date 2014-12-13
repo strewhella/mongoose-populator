@@ -5,8 +5,6 @@ Recursive population of mongoose documents, including lean option
 
 **Usage**
 
-`npm install mongoose-populator`
-
 Requiring the module will return the population function
 
 `var populate = require('mongoose-populator');`
@@ -25,7 +23,7 @@ Car.findOne({ model: 'Focus' }, function(err, cars){
 
 This will populate the `maker` field on each car, as well as the `owner` field on each `maker`
 
-Multiple fields can be requested, separated by spaces: `'some.field some.other.field'`
+Multiple fields can be requested, separated by spaces, of any arbitrary length and can also include arrays at any depth: `'some.field some.other.field'`
 
 Note each field along the chain will be populated, including array fields.
 
