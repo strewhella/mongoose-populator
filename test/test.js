@@ -5,6 +5,8 @@
 var testdb = require('./testdb');
 var should = require('should');
 var populate = require('../index.js');
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
 
 describe('when populating a single doc and single field', function(){
     var db;
@@ -317,7 +319,89 @@ describe('when populating with lean option', function(){
             });
         });
     });
+});
 
+describe('when populating deeply nested objects', function(){
+    var One, Two, Three, Four;
+    before(function(done){
+        var oneSchema = new mongoose.Schema({
+            data: String,
+            two: { type: mongoose.Schema.ObjectId, ref: 'Two' }
+        });
 
+        var twoSchema = new mongoose.Schema({
+            data: String,
+            threes: [{ type: mongoose.Schema.ObjectId, ref: 'Three' }]
+        });
 
+        var threeSchema = new mongoose.Schema({
+            data: String,
+            four: { type: mongoose.Schema.ObjectId, ref: 'Four' }
+        });
+
+        var fourSchema = new mongoose.Schema({
+            data: String,
+            one: [{ type: mongoose.Schema.ObjectId, ref: 'One' }]
+        });
+
+        One = mongoose.model('One', oneSchema);
+        Two = mongoose.model('Two', twoSchema);
+        Three = mongoose.model('Three', threeSchema);
+        Four = mongoose.model('Four', fourSchema);
+
+        var one = new One({_id:ObjectId(), data:'one'});
+        var two = new Two({_id:ObjectId(), data:'two'});
+        var threeOne = new Three({_id:ObjectId(), data:'three-one'});
+        var threeTwo = new Three({_id:ObjectId(), data:'three-two'});
+        var fourOne = new Four({_id:ObjectId(), data:'four-one'});
+        var fourTwo = new Four({_id:ObjectId(), data:'four-two'});
+
+        one.two = two._id;
+        two.threes = [threeOne._id, threeTwo._id];
+        threeOne.four = fourOne._id;
+        threeTwo.four = fourTwo._id;
+
+        one.save(function(){
+            two.save(function(){
+                threeOne.save(function(){
+                    threeTwo.save(function(){
+                        fourOne.save(function(){
+                            fourTwo.save(function(){
+                                done();
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    it('should populate data in first layer of deeply nested object without lean', function(done){
+        One.findOne(function(err, one){
+            populate(one, 'two.threes.four', function(err, one){
+                one.two.data.should.eql('two');
+                done();
+            });
+        });
+    });
+
+    it('should populate data in second layer of deeply nested object without lean', function(done){
+        One.findOne(function(err, one){
+            populate(one, 'two.threes.four', function(err, one){
+                one.two.threes[0].data.should.eql('three-one');
+                one.two.threes[1].data.should.eql('three-two');
+                done();
+            });
+        });
+    });
+
+    it('should populate data in third layer of deeply nested object without lean', function(done) {
+        One.findOne(function (err, one) {
+            populate(one, 'two.threes.four', function (err, one) {
+                one.two.threes[0].four.data.should.eql('four-one');
+                one.two.threes[1].four.data.should.eql('four-two');
+                done();
+            });
+        });
+    });
 });
