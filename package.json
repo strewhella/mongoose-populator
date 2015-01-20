@@ -1,6 +1,6 @@
 {
   "name": "mongoose-populator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Allows full population of nested models in mongoose",
   "repository": "https://github.com/strewhella/mongoose-populator.git",
   "bugs": "https://github.com/strewhella/mongoose-populator/issues",
