@@ -1,4 +1,4 @@
-mongoose-populator
+mongoose-populator [![Build Status](https://travis-ci.org/strewhella/mongoose-populator.svg?branch=master)](https://travis-ci.org/strewhella/mongoose-populator)
 ==================
 
 Recursive population of mongoose documents, including lean option
